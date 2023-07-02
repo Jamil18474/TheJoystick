@@ -34,7 +34,6 @@ const ConnexionScreen = ({ navigation }) => {
                 routes: [{ name: 'HomeScreen' }],
             });
         } catch (error) {
-            console.error('Erreur lors de la connexion de l\'utilisateur :', error);
             setMessage('Une erreur s\'est produite lors de la connexion de l\'utilisateur. Veuillez réessayer.');
         }
     };
