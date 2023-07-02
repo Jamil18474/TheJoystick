@@ -1,51 +1,41 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, TextInput, Button, Text } from 'react-native';
 import { db } from '../../firebaseConfig';
-import { addDoc, collection, doc, getDoc, query, where, getDocs } from 'firebase/firestore';
-// Import the functions you need from the SDKs you need
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-/*
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyBsag8WD-XSv2kd51u8keTOipgX4fct_O8",
-    authDomain: "the-joystick.firebaseapp.com",
-    projectId: "the-joystick",
-    storageBucket: "the-joystick.appspot.com",
-    messagingSenderId: "749338624051",
-    appId: "1:749338624051:web:3dc1979b2d982e9ac8a346",
-    measurementId: "G-216WV9DH6Z"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);*/
 const ConnexionScreen = ({ navigation }) => {
     const [telephone, setTelephone] = useState('');
     const [code, setCode] = useState('');
     const [message, setMessage] = useState('');
 
-    const seConnecter = async ({ navigation }) => {
+    const seConnecter = async () => {
         try {
-            const utilisateursRef = collection(db, "utilisateurs")
+            // on vérifie dans la liste des utilisateurs, l'utilisateur ayant le téléphone et le code saisis dans le formulaire
+            const utilisateursRef = collection(db, "utilisateurs");
             const q = query(utilisateursRef, where("telephone", "==", telephone), where("code", "==", code));
             const querySnapshot = await getDocs(q);
-            if (querySnapshot.empty) {
-                setMessage('Aucun utilisateur trouvé.');
-                return;
-            }
+            // on vérifie si les champs sont remplis
             if (!telephone || !code) {
                 setMessage('Veuillez remplir les champs obligatoires.');
                 return;
             }
+            // on vérifie si on a récupéré un document
+            if (querySnapshot.empty) {
+                setMessage('Aucun utilisateur trouvé.');
+                return;
+            }
             setMessage('Vous êtes bien connecté.');
-            navigation.navigate('HomeScreen');
+            const utilisateurId = querySnapshot.docs[0].id; // Récupération de l'ID de l'utilisateur
+            await AsyncStorage.setItem('utilisateurId', utilisateurId); // Stockage de l'ID de l'utilisateur dans le localStorage
+            // On se redirige vers la page d'accueil et on va déclencher le useEffect de la page d'accueil
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'HomeScreen' }],
+            });
         } catch (error) {
-            console.error('Erreur lors de la création de l\'utilisateur :', error);
-            setMessage('Une erreur s\'est produite lors de la création de l\'utilisateur. Veuillez réessayer.');
+            console.error('Erreur lors de la connexion de l\'utilisateur :', error);
+            setMessage('Une erreur s\'est produite lors de la connexion de l\'utilisateur. Veuillez réessayer.');
         }
     };
 
@@ -95,6 +85,6 @@ const styles = StyleSheet.create({
         marginLeft: 20,
         marginRight: 20,
     },
-
 });
+
 export { ConnexionScreen };

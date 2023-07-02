@@ -31,7 +31,6 @@ const InscriptionScreen = ({ navigation }) => {
                 email: email,
                 code: code
             };
-
             // on vérifie si les champs sont vides
             if (!nom || !prenom || !telephone || !code) {
                 setMessage('Veuillez remplir les champs obligatoires.');
@@ -97,4 +96,5 @@ const styles = StyleSheet.create({
         marginRight: 20,
     },
 });
+
 export { InscriptionScreen };
