@@ -2,7 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { InscriptionScreen } from './components/InscriptionScreen';
+import { HomeScreen, InscriptionScreen, ConnexionScreen } from './components/screens';
 import React from 'react';
 import { AppRegistry } from 'react-native';
 
@@ -15,7 +15,9 @@ export default function App() {
     <View style={styles.container}>
       <NavigationContainer>
         <Stack.Navigator>
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="InscriptionScreen" component={InscriptionScreen} />
+          <Stack.Screen name="ConnexionScreen" component={ConnexionScreen} />
         </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="auto" />
