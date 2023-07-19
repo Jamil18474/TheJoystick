@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Button, Text } from 'react-native';
+import { View, StyleSheet, Button, Text, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { db } from '../../firebaseConfig';
 import { collection, getDocs, doc, updateDoc } from 'firebase/firestore';
@@ -9,8 +9,14 @@ const HomeScreen = ({ navigation }) => {
     const [jeux, setJeux] = useState([]);
     const [jeuCourantIndex, setJeuCourantIndex] = useState(0);
     const [message, setMessage] = useState('');
+    const [isLoading, setLoading] = useState(false);
 
     useEffect(() => {
+        setLoading(true);
+        setTimeout(() => {
+            // on indique que la page a fini de charger
+            setLoading(false);
+        }, 2000);
         const chargementInitial = async () => {
             try {
                 // on récupère l'id de l'utilisateur connecté
@@ -21,12 +27,9 @@ const HomeScreen = ({ navigation }) => {
                     setIdUtilisateur(utilisateurId);
                     // on récupère la liste des jeux
                     const jeuxSnapshot = await getDocs(collection(db, "jeux"));
-                    // on récupère les données des jeux avec en plus l'id de chaque document
+                    // on récupère les données des jeux
                     const jeuxData = jeuxSnapshot.docs.map((doc) => {
-                        return {
-                            id: doc.id,
-                            ...doc.data()
-                        };
+                        return { id: doc.id, ...doc.data() };
                     });
                     // on stocke les jeux récupérés 
                     setJeux(jeuxData);
@@ -35,8 +38,12 @@ const HomeScreen = ({ navigation }) => {
                 setMessage("Erreur lors du chargement de la page.")
             }
         };
+
         chargementInitial();
     }, []);
+
+
+
 
 
     const aimerJeu = () => {
@@ -47,25 +54,43 @@ const HomeScreen = ({ navigation }) => {
             // Vérifier si l'utilisateur est déjà dans la liste des votants
             if (jeuCourant.votants.includes(utilisateurId)) {
                 setMessage("Vous avez déjà aimé ce jeu.");
-                passerJeu();
+                // on indique que la page charge
+                setLoading(true);
+                setTimeout(() => {
+                    // Vider le message après 2 secondes
+                    setMessage("");
+                    // on indique que la page a fini de charger
+                    setLoading(false);
+                    // on passe au jeu suivant
+                    passerJeu();
+                }, 2000);
                 return;
             }
+            // on déstructure l'objet afin de le copier et ne pas altérer le jeu lors de la modification de la copie
             const jeuMaj = { ...jeuCourant };
             // on ajoute l'id de l'utilisateur à la fin de la liste des votants du jeu 
             jeuMaj.votants = [...jeuMaj.votants, utilisateurId];
             // on récupère le document que l'on veut mettre à jour
             const jeuRef = doc(db, "jeux", jeuCourant.id);
-            // on supprime le nouveau champ id qui était nécessaire uniquement pour trouver le document donc plus maintenant
-            delete jeuMaj.id;
             // on met à jour le jeu avec la nouvelle liste des votants
-            updateDoc(jeuRef, jeuMaj)
+            updateDoc(jeuRef, { votants: jeuMaj.votants })
                 .then(() => {
-                    setMessage("Vous avez bien voté pour ce jeu.")
+                    setMessage("Vous avez bien voté pour ce jeu.");
+                    // on indique que la page charge
+                    setLoading(true);
+                    // Vider le message après 2 secondes
+                    setTimeout(() => {
+                        setMessage("");
+                        // on indique que la page a fini de charger
+                        setLoading(false);
+                        // on passe au jeu suivant
+                        passerJeu();
+                    }, 2000);
                 })
                 .catch((error) => {
                     setMessage("Erreur lors de la mise à jour du champ 'votants' :", error);
                 });
-            passerJeu();
+
         }
     };
 
@@ -76,12 +101,9 @@ const HomeScreen = ({ navigation }) => {
             // on incrémente de 1 l'index du jeu courant
             setJeuCourantIndex(jeuCourantIndex + 1);
         } else {
+            // on incrémente de 1 l'index du jeu courant
+            setJeuCourantIndex(jeuCourantIndex + 1);
             setMessage("Aucun jeu disponible");
-            // On se redirige vers la page d'accueil et on va déclencher le useEffect de la page d'accueil
-            navigation.reset({
-                index: 0,
-                routes: [{ name: 'HomeScreen' }],
-            });
 
         }
     };
@@ -92,33 +114,29 @@ const HomeScreen = ({ navigation }) => {
         await AsyncStorage.removeItem('utilisateurId');
         // on vide l'id de l'utilisateur
         setIdUtilisateur('');
+        setLoading(true);
         // On se redirige vers la page d'accueil et on va déclencher le useEffect de la page d'accueil
-        navigation.reset({
-            index: 0,
-            routes: [{ name: 'HomeScreen' }],
-        });
+        setTimeout(() => {
+            navigation.reset({
+                index: 0,
+                routes: [{ name: 'HomeScreen' }],
+            });
+        }, 2000);
+
     };
-
     return (
-        <View style={styles.container}>
-            {idUtilisateur && jeux.length > 0 && jeuCourantIndex < jeux.length ? (
-
-                <View style={styles.jeuContainer}>
-
-                    <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
-                    <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
-
-                    <View style={styles.buttonContainer}>
-                        <View style={styles.buttonPasser}>
-                            <Button title="Passer" onPress={passerJeu} />
-                        </View>
-                        <View style={styles.buttonLiker}>
-                            <Button title="Liker" onPress={aimerJeu} />
-                        </View>
-                    </View>
-                    <Text style={styles.messageText}>{message}</Text>
+        <View style={styles.container} pointerEvents={isLoading ? 'none' : 'auto'}>
+            {isLoading &&
+                <View>
+                    <ActivityIndicator size="large" />
                 </View>
+            }
 
+            {idUtilisateur ? (
+
+                <View style={styles.buttonLogOut} >
+                    <Button title="LogOut" onPress={seDeconnecter} />
+                </View>
             ) : (
                 <View>
                     <View style={styles.buttonSignUp}>
@@ -128,16 +146,37 @@ const HomeScreen = ({ navigation }) => {
                         <Button title="LOG IN" onPress={() => navigation.navigate('ConnexionScreen')} />
                     </View>
                 </View>
-            )}
-            {idUtilisateur && (
-                <View style={styles.buttonLogOut}>
-                    <Button title="LogOut" onPress={seDeconnecter} />
+            )
+            }
+            {jeux.length > 0 && jeuCourantIndex < jeux.length &&
+                <View style={styles.jeuContainer}>
+                    <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
+                    <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
+                    <View style={styles.buttonContainer}>
+                        <View style={styles.buttonPasser}>
+                            <Button title="Passer" onPress={passerJeu} />
+                        </View>
+                        <View style={styles.buttonLiker}>
+                            <Button title="Liker" onPress={aimerJeu} />
+                        </View>
+                    </View>
+
                 </View>
-            )}
+
+
+            }
+            <Text style={styles.messageText}>{message}</Text>
+
+
         </View>
     );
-};
 
+
+
+
+
+
+};
 const styles = StyleSheet.create({
     container: {
         flex: 1,
