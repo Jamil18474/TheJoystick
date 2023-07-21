@@ -16,7 +16,7 @@ const HomeScreen = ({ navigation }) => {
         setTimeout(() => {
             // on indique que la page a fini de charger
             setLoading(false);
-        }, 2000);
+        }, 1000);
         const chargementInitial = async () => {
             try {
                 // on récupère l'id de l'utilisateur connecté
@@ -38,18 +38,12 @@ const HomeScreen = ({ navigation }) => {
                 setMessage("Erreur lors du chargement de la page.")
             }
         };
-
         chargementInitial();
     }, []);
-
-
-
-
 
     const aimerJeu = () => {
         const utilisateurId = idUtilisateur;
         const jeuCourant = jeux[jeuCourantIndex];
-
         if (jeuCourant) {
             // Vérifier si l'utilisateur est déjà dans la liste des votants
             if (jeuCourant.votants.includes(utilisateurId)) {
@@ -63,7 +57,7 @@ const HomeScreen = ({ navigation }) => {
                     setLoading(false);
                     // on passe au jeu suivant
                     passerJeu();
-                }, 2000);
+                }, 1000);
                 return;
             }
             // on déstructure l'objet afin de le copier et ne pas altérer le jeu lors de la modification de la copie
@@ -85,12 +79,11 @@ const HomeScreen = ({ navigation }) => {
                         setLoading(false);
                         // on passe au jeu suivant
                         passerJeu();
-                    }, 2000);
+                    }, 1000);
                 })
                 .catch((error) => {
                     setMessage("Erreur lors de la mise à jour du champ 'votants' :", error);
                 });
-
         }
     };
 
@@ -103,8 +96,8 @@ const HomeScreen = ({ navigation }) => {
         } else {
             // on incrémente de 1 l'index du jeu courant
             setJeuCourantIndex(jeuCourantIndex + 1);
+            // on indique le fait qu'il n'y a plus de jeux disponibles
             setMessage("Aucun jeu disponible");
-
         }
     };
 
@@ -121,9 +114,9 @@ const HomeScreen = ({ navigation }) => {
                 index: 0,
                 routes: [{ name: 'HomeScreen' }],
             });
-        }, 2000);
-
+        }, 1000);
     };
+
     return (
         <View style={styles.container} pointerEvents={isLoading ? 'none' : 'auto'}>
             {isLoading &&
@@ -131,11 +124,25 @@ const HomeScreen = ({ navigation }) => {
                     <ActivityIndicator size="large" />
                 </View>
             }
+            {idUtilisateur && jeux.length > 0 && jeuCourantIndex < jeux.length ? (
+                <View style={styles.utilContainer}>
+                    <View style={styles.jeuContainer}>
+                        <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
+                        <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
+                        <Text style={styles.messageText}>{message}</Text>
+                    </View>
+                    <View style={styles.buttonContainer}>
+                        <View style={styles.buttonPasser}>
+                            <Button title="Passer" onPress={passerJeu} />
+                        </View>
+                        <View style={styles.buttonLiker}>
+                            <Button title="Liker" onPress={aimerJeu} />
+                        </View>
+                    </View>
+                    <View style={styles.buttonLogOut} >
+                        <Button title="LogOut" onPress={seDeconnecter} />
+                    </View>
 
-            {idUtilisateur ? (
-
-                <View style={styles.buttonLogOut} >
-                    <Button title="LogOut" onPress={seDeconnecter} />
                 </View>
             ) : (
                 <View>
@@ -148,50 +155,27 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             )
             }
-            {jeux.length > 0 && jeuCourantIndex < jeux.length &&
-                <View style={styles.jeuContainer}>
-                    <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
-                    <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
-                    <View style={styles.buttonContainer}>
-                        <View style={styles.buttonPasser}>
-                            <Button title="Passer" onPress={passerJeu} />
-                        </View>
-                        <View style={styles.buttonLiker}>
-                            <Button title="Liker" onPress={aimerJeu} />
-                        </View>
-                    </View>
-
-                </View>
-
-
-            }
-            <Text style={styles.messageText}>{message}</Text>
-
-
         </View>
     );
-
-
-
-
-
-
 };
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
         backgroundColor: 'purple'
     },
+    utilContainer: {
+        flex: 1,
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+    },
     jeuContainer: {
-        alignItems: 'center',
+        flex: 1,
         justifyContent: 'center',
-        alignContent: 'space-between'
     },
     buttonContainer: {
         flexDirection: 'row',
-        justifyContent: 'space-around',
-        alignContent: 'space-around',
+        justifyContent: 'space-between',
     },
     buttonSignUp: {
         position: 'absolute',
@@ -229,7 +213,6 @@ const styles = StyleSheet.create({
         top: 20,
         backgroundColor: '#fff',
     },
-
     buttonLiker: {
         width: 150,
         right: 5,
