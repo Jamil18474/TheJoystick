@@ -124,25 +124,9 @@ const HomeScreen = ({ navigation }) => {
                     <ActivityIndicator size="large" />
                 </View>
             }
-            {idUtilisateur && jeux.length > 0 && jeuCourantIndex < jeux.length ? (
-                <View style={styles.utilContainer}>
-                    <View style={styles.jeuContainer}>
-                        <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
-                        <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
-                        <Text style={styles.messageText}>{message}</Text>
-                    </View>
-                    <View style={styles.buttonContainer}>
-                        <View style={styles.buttonPasser}>
-                            <Button title="Passer" onPress={passerJeu} />
-                        </View>
-                        <View style={styles.buttonLiker}>
-                            <Button title="Liker" onPress={aimerJeu} />
-                        </View>
-                    </View>
-                    <View style={styles.buttonLogOut} >
-                        <Button title="LogOut" onPress={seDeconnecter} />
-                    </View>
-
+            {idUtilisateur ? (
+                <View style={styles.buttonLogOut} >
+                    <Button title="LogOut" onPress={seDeconnecter} />
                 </View>
             ) : (
                 <View>
@@ -155,6 +139,25 @@ const HomeScreen = ({ navigation }) => {
                 </View>
             )
             }
+            {
+                idUtilisateur && jeux.length > 0 && jeuCourantIndex < jeux.length &&
+                <View style={styles.utilContainer}>
+                    <View style={styles.jeuContainer}>
+                        <Text style={styles.nomJeu}>{jeux[jeuCourantIndex].nom}</Text>
+                        <Text style={styles.descriptionJeu}>{jeux[jeuCourantIndex].description}</Text>
+
+                    </View>
+                    <View style={styles.buttonContainer}>
+                        <View style={styles.buttonPasser}>
+                            <Button title="Passer" onPress={passerJeu} />
+                        </View>
+                        <View style={styles.buttonLiker}>
+                            <Button title="Liker" onPress={aimerJeu} />
+                        </View>
+                    </View>
+                </View>
+            }
+            <Text style={styles.messageText}>{message}</Text>
         </View>
     );
 };
@@ -205,7 +208,11 @@ const styles = StyleSheet.create({
     messageText: {
         fontSize: 16,
         color: 'white',
-        textAlign: 'center',
+        top: '50%',
+        left: '30%',
+        position: 'absolute',
+        margin: 'auto'
+
     },
     buttonLogOut: {
         position: 'absolute',
