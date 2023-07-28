@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TextInput, Button, Text } from 'react-native';
+import { View, StyleSheet, TextInput, Text, TouchableOpacity } from 'react-native';
 import { db } from '../../firebaseConfig';
 import { addDoc, collection } from 'firebase/firestore';
 
@@ -24,44 +24,60 @@ const InscriptionScreen = ({ navigation }) => {
     // fonction pour créer un utilisateur
     const creerUtilisateur = async () => {
         try {
-            const utilisateur = {
-                nom: nom,
-                prenom: prenom,
-                telephone: telephone,
-                email: email,
-                code: code
-            };
             // on vérifie si les champs sont vides
             if (!nom || !prenom || !telephone || !code) {
                 setMessage('Veuillez remplir les champs obligatoires.');
                 return;
             }
             // on ajoute le nouvel utilisateur dans la base de données
-            addDoc(collection(db, 'utilisateurs'), utilisateur);
-            resetForm();
-            setMessage('L\'utilisateur a été créé avec succès.');
+            await addDoc(collection(db, 'utilisateurs'), {
+                nom: nom,
+                prenom: prenom,
+                telephone: telephone,
+                email: email,
+                code: code
+            }).then(() => {
+                // on vide les champs de saisie du formulaire
+                resetForm();
+                setMessage("Vous avez bien créé un compte.");
+                // Vider le message après 1 seconde
+                setTimeout(() => {
+                    setMessage("");
+                }, 1000);
+            })
+                .catch((error) => {
+                    console.log(error);
+                    setMessage("Erreur lors de la création de compte :", error);
+                    setTimeout(() => {
+                        setMessage("");
+                    }, 1000);
+                });
+
         } catch (error) {
-            console.error('Erreur lors de la création de l\'utilisateur :', error);
-            setMessage('Une erreur s\'est produite lors de la création de l\'utilisateur. Veuillez réessayer.');
+            // on affiche un message d'erreur s'il y'a eu un problème lors de la création d'un utilisateur
+            console.log(error);
+            setMessage('Une erreur s\'est produite lors de la création de compte : ', error);
+            setTimeout(() => {
+                setMessage("");
+            }, 1000);
         }
     };
 
     return (
         <View style={styles.container}>
-            <View style={styles.buttonRetour}>
-                <Button
-                    title="Retour"
-                    onPress={() => navigation.navigate('HomeScreen')}
-                />
-            </View>
+            <TouchableOpacity style={styles.buttonRetour} onPress={() => navigation.navigate('HomeScreen')}>
+                <Text style={styles.buttonRetourText}>RETOUR</Text>
+            </TouchableOpacity>
             <View style={styles.form}>
                 <TextInput style={styles.input} value={nom} onChangeText={setNom} placeholder="Nom" />
                 <TextInput style={styles.input} value={prenom} onChangeText={setPrenom} placeholder="Prénom" />
                 <TextInput style={styles.input} value={telephone} onChangeText={setTelephone} placeholder="Téléphone" />
                 <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Email" />
                 <TextInput style={styles.input} value={code} onChangeText={setCode} placeholder="Code" />
-                <Button onPress={creerUtilisateur} title="Créer Utilisateur" />
-                <Text>{message}</Text>
+                <TouchableOpacity style={styles.buttonCreerUtilisateur} onPress={creerUtilisateur}>
+                    <Text style={styles.buttonCreerUtilisateurText}>S'INSCRIRE</Text>
+                </TouchableOpacity>
+                <Text style={styles.messageText}>{message}</Text>
             </View>
         </View>
     );
@@ -70,10 +86,7 @@ const InscriptionScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: 'purple',
-        padding: 20,
     },
     input: {
         width: '100%',
@@ -85,15 +98,31 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
     },
     buttonRetour: {
-        position: 'absolute',
-        left: 20,
-        top: 20,
-        backgroundColor: '#fff',
+        flexDirection: 'row',
+        width: 100,
+        justifyContent: 'flex-start',
+        backgroundColor: 'yellow',
+    },
+    buttonRetourText: {
+        textAlign: 'center',
+        color: 'green',
+    },
+    buttonCreerUtilisateur: {
+        backgroundColor: 'yellow',
+    },
+    buttonCreerUtilisateurText: {
+        textAlign: 'center',
+        color: 'green',
+    },
+    messageText: {
+        fontSize: 16,
+        color: 'green',
     },
     form: {
-        paddingTop: 10,
-        marginLeft: 20,
-        marginRight: 20,
+        flex: 1,
+        marginLeft: 50,
+        marginRight: 50,
+        justifyContent: 'center',
     },
 });
 
